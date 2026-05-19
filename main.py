@@ -69,7 +69,7 @@ def create_form(
     if mini_bar:
         price += 4000
     if transfer:
-        price += 1000   # фиксированная цена трансфера
+        price += 1500   # фиксированная цена трансфера
 
     booking = Booking(
         home_id=home_id,
