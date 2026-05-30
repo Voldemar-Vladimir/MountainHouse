@@ -168,5 +168,20 @@ def track(booking_id: int = None, db: Session = Depends(get_db)):
     template = template_lookup.get_template("track.html")
     return HTMLResponse(template.render(all=all))
 
+@app.get("/support")
+def support_page(request: Request):
+    template = template_lookup.get_template("support.html")
+    return HTMLResponse(template.render())
+
+@app.post("/support")
+def support_send(
+    name: str = Form(...),
+    contact: str = Form(...),
+    message: str = Form(...)
+):
+    msg = f"📩 Новое обращение!\nИмя: {name}\nКонтакты: {contact}\nВопрос: {message}"
+    RostovHomes(msg)
+    return RedirectResponse(url="/success", status_code=303)
+
 if __name__ == "__main__":
     uvicorn.run(app)
