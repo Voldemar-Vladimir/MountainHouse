@@ -111,6 +111,8 @@ def show_booking_form(request: Request, home_id: int = None):
     ))
 
 def RostovHomes(message):
+    token = "8601793998:AAH0Kqg5_eR9rccweqscC3EVAIiwHovmq7A"
+    chat_id = "5977647337"
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     data = {"chat_id": chat_id, "text": message}
     try:
