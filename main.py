@@ -13,7 +13,8 @@ import requests
 from Admin_Info import token,chat_id,secret
 
 secret_key = secret()
-
+toke=token()
+chat_id=chat_id()
 security = HTTPBasic()
 
 def get_db():
@@ -28,10 +29,10 @@ template_lookup = TemplateLookup(directories=["templates"])
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 homes = [
-    {"id": 1, "price_per_day": 4000, "distance_to_sea": 300, "rooms": 3, "pool": True,
+    {"id": 1, "price_per_day": 6000, "distance_to_sea": 300, "rooms": 4, "pool": False,
      "img": "/static/img/home1.png",
-     "img_room": ["/static/img/home1_room1.png", "/static/img/home1_room2.png", "/static/img/home1_room3.png"],
-     "tv": True, "wifi": True, "batut": False, "rating": 4.99},
+     "img_room": ["/static/img/img.png", "/static/img/img_1.png", "/static/img/img_2.png", "/static/img/img_3.png", "/static/img/img_4.png", "/static/img/img_5.png", "/static/img/img_6.png", "/static/img/img_7.png", "/static/img/img_8.png", "/static/img/img_9.png"],
+     "tv": True, "wifi": True, "batut": False, "rating": 5},
 
 ]
 
@@ -110,8 +111,6 @@ def show_booking_form(request: Request, home_id: int = None):
     ))
 
 def RostovHomes(message):
-    token = token()
-    chat_id = chat_id()
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     data = {"chat_id": chat_id, "text": message}
     try:
@@ -182,7 +181,7 @@ def support_send(
 
 reviews_data = [
     {"name": "Марина", "date": "12 мая 2026", "rating": 5, "text": "Отдыхали с семьёй, очень понравилось! Дом чистый, удобный, до моря рукой подать. Обязательно вернёмся.", "answer": "Спасибо, Марина! Ждём вас снова!"},
-    {"name": "Алексей", "date": "3 мая 2026", "rating": 4, "text": "Хороший дом, но телевизор староват. А так всё отлично.", "answer": "Алексей, спасибо за отзыв! Телевизор уже заменили."},
+    {"name": "Алексей", "date": "3 мая 2026", "rating": 5, "text": "Хороший дом, но телевизор староват. А так всё отлично.", "answer": "Алексей, спасибо за отзыв! Телевизор уже заменили."},
     {"name": "Ольга", "date": "20 апреля 2026", "rating": 5, "text": "Превосходное место! Рекомендую."},
 ]
 
