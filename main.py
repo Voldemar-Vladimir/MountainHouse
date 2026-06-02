@@ -31,7 +31,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 homes = [
     {"id": 1, "price_per_day": 6000, "distance_to_sea": 300, "rooms": 4, "pool": False,
      "img": "/static/img/home1.png",
-     "img_room": ["/static/img/img.png", "/static/img/img_1.png", "/static/img/img_2.png", "/static/img/img_3.png", "/static/img/img_4.png", "/static/img/img_5.png", "/static/img/img_6.png", "/static/img/img_7.png", "/static/img/img_8.png", "/static/img/img_9.png"],
+     "img_room": ["/static/img/home1.png", "/static/img/img_1.png", "/static/img/img_2.png", "/static/img/img_3.png", "/static/img/img_4.png", "/static/img/img_5.png", "/static/img/img_6.png", "/static/img/img_7.png"],
      "tv": True, "wifi": True, "batut": False, "rating": 5},
 
 ]
