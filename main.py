@@ -52,6 +52,10 @@ def create_form(
     mini_bar: bool = Form(False),
     transfer: bool = Form(False),
     peoples: str = Form(...),
+    karaoke: bool = Form(False),
+    dj: bool = Form(False),
+    hookah: bool = Form(False),
+    photographer: bool = Form(False),
     db: Session = Depends(get_db)
 ):
     days = (check_out - check_in).days
@@ -68,8 +72,15 @@ def create_form(
     if mini_bar:
         price += 4000
     if transfer:
-        price += 1500   # фиксированная цена трансфера
-
+        price += 1500
+    if karaoke:
+        price += 2000
+    if dj:
+        price += 3000
+    if hookah:
+        price += 1500
+    if photographer:
+        price += 4000
     booking = Booking(
         home_id=home_id,
         check_in=check_in,
@@ -80,11 +91,17 @@ def create_form(
         mini_bar=mini_bar,
         transfer=transfer,
         total_price=price,
-        peoples=peoples
+        peoples=peoples,
     )
     db.add(booking)
     db.commit()
-    message = f"Новый заказ!\nДом №{home_id}\nИмя: {name}\nТелефон: {phone}\nДаты: {check_in} – {check_out}\nГостей: {peoples}\nСумма: {price}₽"
+    addons = []
+    if karaoke: addons.append("🎤 Караоке")
+    if dj: addons.append("🎧 Диджей")
+    if hookah: addons.append("💨 Кальян")
+    if photographer: addons.append("📸 Фотограф")
+    addons_str = ", ".join(addons) if addons else "нет"
+    message = f"Новый заказ!\n...\nДоп. услуги: {addons_str}\nСумма: {price}₽"
     RostovHomes(message)
     return RedirectResponse(url=f"/success?booking_id={booking.id}", status_code=303)
 

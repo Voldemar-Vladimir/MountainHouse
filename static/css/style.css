@@ -1,98 +1,148 @@
+/* === ВЕЧЕРИНКА У ОЗЕРА — НЕОНОВЫЙ СТИЛЬ === */
+
 body {
-    background-color: #fdf5e6; /* тёплый кремовый */
+    background: radial-gradient(circle at top, #1a0a2e, #0d0221);
+    color: #f0e6ff;
     font-family: 'Inter', sans-serif;
+    min-height: 100vh;
 }
 
 .navbar {
-    background-color: #3e2723 !important; /* тёмно-коричневый */
+    background: rgba(10, 5, 30, 0.9) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #ff007f;
 }
 
 .navbar-brand {
     color: #fff !important;
+    text-shadow: 0 0 10px #ff007f;
 }
 
-.navbar a.btn-outline-warning,
-.navbar a.btn-outline-primary,
-.navbar a.btn-outline-info {
-    border-color: #fff;
-    color: #fff;
+.navbar .btn {
+    border-color: #00f0ff;
+    color: #00f0ff;
+    text-shadow: 0 0 6px #00f0ff;
 }
 
-.navbar a.btn-outline-warning:hover,
-.navbar a.btn-outline-primary:hover,
-.navbar a.btn-outline-info:hover {
-    background-color: #fff;
-    color: #3e2723;
+.navbar .btn:hover {
+    background: #00f0ff;
+    color: #0d0221;
+    box-shadow: 0 0 15px #00f0ff;
 }
 
 .card {
-    border: none;
+    background: rgba(20, 10, 40, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid #ff007f;
     border-radius: 20px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    background-color: #fff;
+    box-shadow: 0 0 25px rgba(255, 0, 127, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.card-body {
-    padding: 2rem;
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 40px rgba(255, 0, 127, 0.7);
 }
 
 .card-title {
-    color: #3e2723;
-    font-size: 1.8rem;
+    color: #fff;
+    text-shadow: 0 0 8px #ff007f;
+    font-size: 2rem;
     font-weight: 700;
 }
 
 .card ul li {
     font-size: 1.1rem;
-    margin-bottom: 8px;
+    color: #ddd;
 }
 
 .btn-success {
-    background-color: #f57c00;
-    border-color: #f57c00;
-    font-weight: 600;
+    background: #ff007f;
+    border: none;
+    box-shadow: 0 0 12px #ff007f;
+    font-weight: bold;
+    letter-spacing: 0.5px;
 }
 
 .btn-success:hover {
-    background-color: #e65100;
-    border-color: #e65100;
+    background: #e60073;
+    box-shadow: 0 0 20px #ff007f;
 }
 
 .btn-outline-primary,
 .btn-outline-warning,
 .btn-outline-info {
-    color: #3e2723;
-    border-color: #3e2723;
+    border-color: #00f0ff;
+    color: #00f0ff;
+    text-shadow: 0 0 6px #00f0ff;
 }
 
 .btn-outline-primary:hover,
 .btn-outline-warning:hover,
 .btn-outline-info:hover {
-    background-color: #3e2723;
-    color: #fff;
+    background: #00f0ff;
+    color: #0d0221;
+    box-shadow: 0 0 20px #00f0ff;
 }
 
 footer {
-    background-color: #3e2723;
-    color: #fff;
+    background: rgba(10, 5, 30, 0.9);
+    border-top: 1px solid #ff007f;
+    color: #aaa;
 }
 
 footer small {
-    color: #fff;
-}
-
-/* Отзывы */
-.card.shadow-sm {
-    background-color: #fff;
-}
-
-.rating-stars i {
-    color: #f57c00;
+    color: #aaa;
 }
 
 /* Форма бронирования */
 .alert-warning {
-    background-color: #fff3e0;
-    border-color: #ff9800;
-    color: #3e2723;
+    background: rgba(255, 0, 127, 0.1);
+    border: 1px solid #ff007f;
+    color: #f0e6ff;
+    text-shadow: 0 0 5px rgba(255,255,255,0.2);
+}
+
+/* Звёзды рейтинга */
+.rating-stars i {
+    color: #ffcc00;
+    filter: drop-shadow(0 0 6px #ffcc00);
+}
+
+/* === Стили для карточек отзывов (светлый фон, тёмный текст) === */
+.card.review-card {
+    background: rgba(255, 255, 255, 0.95);
+    color: #1a0a2e;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.card.review-card .card-body {
+    color: #1a0a2e;
+}
+
+.card.review-card .text-muted {
+    color: #555 !important;
+}
+
+.card.review-card .btn-outline-primary {
+    border-color: #1a0a2e;
+    color: #1a0a2e;
+}
+
+.card.review-card .btn-outline-primary:hover {
+    background: #1a0a2e;
+    color: #fff;
+}
+
+/* Кастомный скроллбар */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0d0221;
+}
+::-webkit-scrollbar-thumb {
+    background: #ff007f;
+    border-radius: 4px;
 }
