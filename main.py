@@ -89,7 +89,11 @@ def create_form(
     )
     db.add(booking)
     db.commit()
-    message = f"Новый заказ!\nДом №{home_id}\nИмя: {name}\nТелефон: {phone}\nДаты: {check_in} – {check_out}\nГостей: {peoples}\nСумма: {price}₽"
+    addons = []
+    if ski: addons.append("Лыжи")
+    if sauna: addons.append("Сауна")
+    addons_str = ", ".join(addons) if addons else "нет"
+    message = f"Новый заказ!\nДом №{home_id}\nИмя: {name}\nТелефон: {phone}\nДаты: {check_in} – {check_out}\nГостей: {peoples}\nДоп. услуги: {addons_str}\nСумма: {price}₽"
     RostovHomes(message)
     return RedirectResponse(url=f"/success?booking_id={booking.id}", status_code=303)
 
