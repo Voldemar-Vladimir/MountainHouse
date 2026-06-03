@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy import create_engine, Column, Integer, String, Date, Boolean, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-engine = create_engine('sqlite:///b.db')
+engine = create_engine('sqlite:///с.db')
 Base = declarative_base()
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 

@@ -29,9 +29,9 @@ template_lookup = TemplateLookup(directories=["templates"])
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 homes = [
-    {"id": 1, "price_per_day": 6000, "distance_to_sea": 300, "rooms": 4, "pool": False,
+    {"id": 1, "price_per_day": 6000, "distance_to_lift": 300, "rooms": 4, "pool": False,
      "img": "/static/img/home1.png",
-     "img_room": ["/static/img/home1.png", "/static/img/img_1.png", "/static/img/img_2.png", "/static/img/img_3.png", "/static/img/img_4.png", "/static/img/img_5.png", "/static/img/img_6.png", "/static/img/img_7.png"],
+     "img_room": ["/static/img/home1.png", "/static/img/img_1.png", "/static/img/img_2.png", "/static/img/img_3.png", "/static/img/img_4.png", "/static/img/img_5.png", "/static/img/img_6.png", "/static/img/img_7.png", "/static/img/img_8.png", "/static/img/img_9.png","/static/img/home10.png", "/static/img/img_11.png", "/static/img/img_12.png", "/static/img/img_13.png", "/static/img/img_14.png", "/static/img/img_15.png", "/static/img/img_16.png"],
      "tv": True, "wifi": True, "batut": False, "rating": 5},
 
 ]
@@ -52,10 +52,8 @@ def create_form(
     mini_bar: bool = Form(False),
     transfer: bool = Form(False),
     peoples: str = Form(...),
-    karaoke: bool = Form(False),
-    dj: bool = Form(False),
-    hookah: bool = Form(False),
-    photographer: bool = Form(False),
+    ski: bool = Form(False),
+    sauna: bool = Form(False),
     db: Session = Depends(get_db)
 ):
     days = (check_out - check_in).days
@@ -73,14 +71,10 @@ def create_form(
         price += 4000
     if transfer:
         price += 1500
-    if karaoke:
-        price += 2000
-    if dj:
-        price += 3000
-    if hookah:
+    if ski:
         price += 1500
-    if photographer:
-        price += 4000
+    if sauna:
+        price += 2000
     booking = Booking(
         home_id=home_id,
         check_in=check_in,
@@ -91,17 +85,11 @@ def create_form(
         mini_bar=mini_bar,
         transfer=transfer,
         total_price=price,
-        peoples=peoples,
+        peoples=peoples
     )
     db.add(booking)
     db.commit()
-    addons = []
-    if karaoke: addons.append("🎤 Караоке")
-    if dj: addons.append("🎧 Диджей")
-    if hookah: addons.append("💨 Кальян")
-    if photographer: addons.append("📸 Фотограф")
-    addons_str = ", ".join(addons) if addons else "нет"
-    message = f"Новый заказ!\n...\nДоп. услуги: {addons_str}\nСумма: {price}₽"
+    message = f"Новый заказ!\nДом №{home_id}\nИмя: {name}\nТелефон: {phone}\nДаты: {check_in} – {check_out}\nГостей: {peoples}\nСумма: {price}₽"
     RostovHomes(message)
     return RedirectResponse(url=f"/success?booking_id={booking.id}", status_code=303)
 
