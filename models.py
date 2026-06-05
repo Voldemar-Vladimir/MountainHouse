@@ -17,6 +17,8 @@ class Booking(Base):
     email = Column(String)
     mini_bar = Column(Boolean, default=False)
     transfer = Column(Boolean, default=False)
+    ski = Column(Boolean, default=False)
+    sauna = Column(Boolean, default=False)
     total_price = Column(Integer)
     status = Column(String, default='new')
     created_at = Column(DateTime, default=datetime.utcnow)

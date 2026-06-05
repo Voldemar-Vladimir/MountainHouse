@@ -84,12 +84,16 @@ def create_form(
         email=email,
         mini_bar=mini_bar,
         transfer=transfer,
+        ski=ski,
+        sauna=sauna,
         total_price=price,
         peoples=peoples
     )
     db.add(booking)
     db.commit()
     addons = []
+    if mini_bar: addons.append("Минибар")
+    if transfer: addons.append("Трансфер")
     if ski: addons.append("Лыжи")
     if sauna: addons.append("Сауна")
     addons_str = ", ".join(addons) if addons else "нет"
