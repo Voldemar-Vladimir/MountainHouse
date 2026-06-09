@@ -1,20 +1,37 @@
 import uvicorn
 import datetime
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from datetime import datetime, date, timedelta, timezone
+from fastapi.security import HTTPBasic
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
 from starlette.staticfiles import StaticFiles
 from models import SessionLocal, Booking
 from fastapi import FastAPI, HTTPException, Form, Depends, Request
-from pydantic import BaseModel, Field
 from mako.lookup import TemplateLookup
 import requests
-from Admin_Info import token,chat_id,secret
+from Admin_Info import token, chat_id, secret   # это функции
+from apscheduler.schedulers.background import BackgroundScheduler
 
-secret_key = secret()
-toke=token()
-chat_id=chat_id()
+# -------------------- Планировщик очистки просроченных броней --------------------
+def clean_expired_bookings():
+    db = SessionLocal()
+    now_utc = datetime.now(timezone.utc)
+    deleted = db.query(Booking).filter(
+        Booking.payment_status == 'pending',
+        Booking.expires_at < now_utc
+    ).delete()
+    db.commit()
+    db.close()
+    if deleted:
+        print(f"Удалено {deleted} просроченных неоплаченных броней")
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(clean_expired_bookings, 'interval', hours=1)
+scheduler.start()
+# --------------------------------------------------------------------------------
+
+secret_key = secret()          # secret() возвращает строку
 security = HTTPBasic()
 
 def get_db():
@@ -31,9 +48,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 homes = [
     {"id": 1, "price_per_day": 6000, "distance_to_lift": 300, "rooms": 4, "pool": False,
      "img": "/static/img/home1.png",
-     "img_room": ["/static/img/home1.png", "/static/img/img_1.png", "/static/img/img_2.png", "/static/img/img_3.png", "/static/img/img_4.png", "/static/img/img_5.png", "/static/img/img_6.png", "/static/img/img_7.png", "/static/img/img_8.png", "/static/img/img_9.png","/static/img/home10.png", "/static/img/img_11.png", "/static/img/img_12.png", "/static/img/img_13.png", "/static/img/img_14.png", "/static/img/img_15.png", "/static/img/img_16.png"],
+     "img_room": ["/static/img/home1.png", "/static/img/img_1.png", "/static/img/img_2.png", "/static/img/img_3.png", "/static/img/img_4.png", "/static/img/img_5.png", "/static/img/img_6.png", "/static/img/img_7.png", "/static/img/img_8.png", "/static/img/img_9.png","/static/img/img_10.png", "/static/img/img_11.png", "/static/img/img_12.png", "/static/img/img_13.png", "/static/img/img_14.png", "/static/img/img_15.png", "/static/img/img_16.png"],
      "tv": True, "wifi": True, "batut": False, "rating": 5},
-
 ]
 
 @app.get("/")
@@ -41,11 +57,34 @@ def root(request: Request):
     template = template_lookup.get_template("index.html")
     return HTMLResponse(template.render(homes=homes))
 
+def is_home_available(home_id: int, check_in: date, check_out: date, db: Session):
+    overlapping = db.query(Booking).filter(
+        Booking.home_id == home_id,
+        Booking.status == 'confirmed',
+        Booking.check_in < check_out,
+        Booking.check_out > check_in
+    ).first()
+    return overlapping is None
+
+@app.get("/api/blocked_dates/{home_id}")
+def get_blocked_dates(home_id: int, db: Session = Depends(get_db)):
+    bookings = db.query(Booking).filter(
+        Booking.home_id == home_id,
+        Booking.status == 'confirmed'
+    ).all()
+    blocked = []
+    for b in bookings:
+        delta = (b.check_out - b.check_in).days
+        for i in range(delta):
+            date_str = (b.check_in + timedelta(days=i)).isoformat()
+            blocked.append(date_str)
+    return {"blocked": blocked}
+
 @app.post("/booking")
 def create_form(
     home_id: int = Form(...),
-    check_in: datetime.date = Form(...),
-    check_out: datetime.date = Form(...),
+    check_in: str = Form(...),          # важно: строка из формы
+    check_out: str = Form(...),         # строка
     name: str = Form(...),
     phone: str = Form(...),
     email: str = Form(""),
@@ -56,7 +95,18 @@ def create_form(
     sauna: bool = Form(False),
     db: Session = Depends(get_db)
 ):
-    days = (check_out - check_in).days
+    # Преобразование строк в даты
+    try:
+        check_in_date = datetime.strptime(check_in, '%Y-%m-%d').date()
+        check_out_date = datetime.strptime(check_out, '%Y-%m-%d').date()
+    except ValueError:
+        raise HTTPException(400, "Неверный формат даты")
+
+    # Проверка доступности дат
+    if not is_home_available(home_id, check_in_date, check_out_date, db):
+        raise HTTPException(400, "Эти дни уже забронированы")
+
+    days = (check_out_date - check_in_date).days
     if days <= 0:
         raise HTTPException(400, "Дата выезда должна быть позже даты заезда")
     if days < 2:
@@ -75,10 +125,11 @@ def create_form(
         price += 1500
     if sauna:
         price += 2000
+
     booking = Booking(
         home_id=home_id,
-        check_in=check_in,
-        check_out=check_out,
+        check_in=check_in_date,
+        check_out=check_out_date,
         name=name,
         phone=phone,
         email=email,
@@ -87,10 +138,13 @@ def create_form(
         ski=ski,
         sauna=sauna,
         total_price=price,
-        peoples=peoples
+        peoples=peoples,
+        payment_status='pending',
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=30)
     )
     db.add(booking)
     db.commit()
+
     addons = []
     if mini_bar: addons.append("Минибар")
     if transfer: addons.append("Трансфер")
@@ -101,13 +155,28 @@ def create_form(
     RostovHomes(message)
     return RedirectResponse(url=f"/success?booking_id={booking.id}", status_code=303)
 
+# -------------------- Фейковая оплата --------------------
+@app.get("/fake_pay/{booking_id}")
+def fake_pay(booking_id: int, db: Session = Depends(get_db)):
+    booking = db.get(Booking, booking_id)
+    if not booking:
+        raise HTTPException(404, "Бронь не найдена")
+    if booking.status == 'confirmed':
+        return RedirectResponse(url=f"/success?booking_id={booking_id}")
+    booking.status = 'confirmed'
+    booking.payment_status = 'paid'
+    db.commit()
+    RostovHomes(f"✅ Фейк-оплата! Бронь #{booking.id} подтверждена.")
+    return RedirectResponse(url=f"/success?booking_id={booking_id}")
+# --------------------------------------------------------
+
 @app.get("/success")
 def success(booking_id: int = None, db: Session = Depends(get_db)):
-    all = db.query(Booking).get(booking_id) if booking_id else None
+    booking = db.get(Booking, booking_id) if booking_id else None
     template = template_lookup.get_template("success.html")
-    if not all:
+    if not booking:
         return HTMLResponse(template.render(all=None))
-    return HTMLResponse(template.render(all=all))
+    return HTMLResponse(template.render(all=booking))
 
 @app.get("/booking")
 def show_booking_form(request: Request, home_id: int = None):
@@ -124,38 +193,42 @@ def show_booking_form(request: Request, home_id: int = None):
     ))
 
 def RostovHomes(message):
-    token = "8601793998:AAH0Kqg5_eR9rccweqscC3EVAIiwHovmq7A"
-    chat_id = "5977647337"
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    data = {"chat_id": chat_id, "text": message}
+    tg_token = token()          # вызываем функцию
+    tg_chat_id = chat_id()      # вызываем функцию
+    url = f"https://api.telegram.org/bot{tg_token}/sendMessage"
+    data = {"chat_id": tg_chat_id, "text": message}
     try:
         requests.post(url, json=data, timeout=5, proxies={"http": None, "https": None})
     except Exception as e:
         print(f"Ошибка отправки в Telegram: {e}")
 
 @app.get("/admin/{password}")
-def admin(password,db: Session = Depends(get_db)):
+def admin(password, db: Session = Depends(get_db)):
     if password == secret_key:
-        bookings=db.query(Booking).order_by(Booking.created_at.desc()).all()
+        bookings = db.query(Booking).order_by(Booking.created_at.desc()).all()
         template = template_lookup.get_template("admin.html")
-        return HTMLResponse(template.render(bookings=bookings,password=password))
+        return HTMLResponse(template.render(bookings=bookings, password=password))
     else:
         raise HTTPException(404)
 
 @app.get("/admin/{password}/confirm/{booking_id}")
-def confirm(password,booking_id, db: Session = Depends(get_db)):
-    if password != secret_key: raise HTTPException(404)
-    booking = db.query(Booking).get(booking_id)
-    if not booking: raise HTTPException(404)
+def confirm(password, booking_id, db: Session = Depends(get_db)):
+    if password != secret_key:
+        raise HTTPException(404)
+    booking = db.get(Booking, booking_id)
+    if not booking:
+        raise HTTPException(404)
     booking.status = "confirmed"
     db.commit()
     return RedirectResponse(url=f"/admin/{password}", status_code=303)
 
 @app.get("/admin/{password}/cancel/{booking_id}")
-def cancel(password,booking_id, db: Session = Depends(get_db)):
-    if password != secret_key: raise HTTPException(404)
-    booking = db.query(Booking).get(booking_id)
-    if not booking: raise HTTPException(404)
+def cancel(password, booking_id, db: Session = Depends(get_db)):
+    if password != secret_key:
+        raise HTTPException(404)
+    booking = db.get(Booking, booking_id)
+    if not booking:
+        raise HTTPException(404)
     booking.status = "cancelled"
     db.commit()
     return RedirectResponse(url=f"/admin/{password}", status_code=303)
@@ -174,11 +247,11 @@ def login_check(pin: str = Form(...)):
 
 @app.get("/track")
 def track(booking_id: int = None, db: Session = Depends(get_db)):
-    all = db.query(Booking).get(booking_id) if booking_id else None
-    if not all:
+    booking = db.get(Booking, booking_id) if booking_id else None
+    if not booking:
         raise HTTPException(404)
     template = template_lookup.get_template("track.html")
-    return HTMLResponse(template.render(all=all))
+    return HTMLResponse(template.render(all=booking))
 
 @app.get("/support")
 def support_page(request: Request):
